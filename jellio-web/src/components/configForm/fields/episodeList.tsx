@@ -22,13 +22,13 @@ const OPTIONS: PickerOption<EpisodeListSource>[] = [
     value: 'cinemeta',
     label: 'Cinemeta (IMDb)',
     description:
-      'Series keep their IMDb id, so other addons such as OpenSubtitles find them too. Episode numbers and thumbnails follow IMDb.',
+      "IMDb's episode list. Other addons (OpenSubtitles, stream addons) work with these series too, but specials can be numbered differently from Jellyfin.",
   },
   {
     value: 'jellyfin',
     label: 'Jellyfin',
     description:
-      "Episodes as Jellyfin has them: same seasons, numbering and thumbnails. Other addons don't recognise these series.",
+      "Your Jellyfin seasons, numbering and thumbnails. Other addons don't recognize these series.",
   },
 ];
 
@@ -49,9 +49,9 @@ export const EpisodeListField: FC<Props> = ({ form }) => {
             />
           </FormControl>
           <FormDescription>
-            Applies to series opened from this addon&apos;s catalogs. Changing
-            it starts their watch progress in Stremio over, because the series
-            get a different id.
+            Only affects series opened from this addon&apos;s catalogs.
+            Switching gives them a new id in Stremio, so their watch progress
+            starts over.
           </FormDescription>
           <FormMessage />
         </FormItem>

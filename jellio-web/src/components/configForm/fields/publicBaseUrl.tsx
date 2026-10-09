@@ -27,9 +27,10 @@ export const PublicBaseUrlField: FC<Props> = ({ form }) => {
             <Input placeholder="https://jellyfin.example.com" {...field} />
           </FormControl>
           <FormDescription>
-            Public URL where Jellyfin is reachable from outside your local
-            network. Used to build the addon install URL handed to Stremio.
-            Leave empty to use the address from the current page.
+            HTTPS address where your other devices reach Jellyfin. Used for the
+            addon link and for every poster, video and subtitle link inside it.
+            Required behind Tailscale Serve or another HTTPS proxy. Leave empty
+            to use the address of this page.
           </FormDescription>
           <FormMessage />
         </FormItem>
