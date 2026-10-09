@@ -11,4 +11,7 @@ owner: "CXZP"
 artifacts:
   - "Jellyfin.Plugin.JellioDirect.dll"
 changelog: |
-  Subtitles on the HLS entries; finds episodes IMDb numbers differently; Episode list option (Cinemeta or Jellyfin); redesigned settings page.
+  - Subtitles on the HLS entries, matched to the file that is playing
+  - Finds episodes that IMDb numbers differently from Jellyfin (specials, OVAs)
+  - Episode list option: Cinemeta (IMDb) or Jellyfin (your own seasons, numbering and thumbnails)
+  - Redesigned settings page
