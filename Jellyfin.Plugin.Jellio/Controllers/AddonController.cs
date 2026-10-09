@@ -329,6 +329,89 @@ public class AddonController : ControllerBase
             .ToList();
     }
 
+    internal static List<MediaStream> GetTextSubtitleStreams(MediaSourceInfo source)
+    {
+        return source.MediaStreams
+            .Where(stream => stream.Type == MediaStreamType.Subtitle && stream.IsTextSubtitleStream)
+            .OrderByDescending(stream => stream.IsDefault)
+            .ThenByDescending(stream => stream.IsForced)
+            .ThenBy(stream => stream.Index)
+            .ToList();
+    }
+
+    internal static SubtitleDto ToSubtitleDto(
+        MediaStream sub,
+        Guid itemId,
+        string mediaSourceId,
+        string baseUrl,
+        string authToken)
+    {
+        var format = sub.Codec switch
+        {
+            "subrip" => "srt",
+            "ass" => "ass",
+            "webvtt" => "vtt",
+            _ => "srt",
+        };
+        // A bare language code lets clients show a proper language name; the
+        // track title (e.g. "SDH") rides along in the optional label.
+        return new SubtitleDto
+        {
+            Id = $"jelliopp-{itemId}-{sub.Index}",
+            Url = BuildSubtitleUrl(baseUrl, itemId, mediaSourceId, sub.Index, format, authToken),
+            Lang = string.IsNullOrEmpty(sub.Language) ? "und" : sub.Language,
+            Label = string.IsNullOrEmpty(sub.Title) ? null : sub.Title,
+        };
+    }
+
+    // Stremio's subtitles request carries the playing file's name and size (from the stream's
+    // behaviorHints) in the extra segment, e.g. "filename=Dune.mkv&videoSize=123&videoHash=abc".
+    internal static (string? Filename, long? VideoSize) ParseSubtitleExtra(string? extra)
+    {
+        if (string.IsNullOrEmpty(extra))
+        {
+            return (null, null);
+        }
+
+        string? filename = null;
+        long? videoSize = null;
+        foreach (var part in extra.Split('&'))
+        {
+            var separator = part.IndexOf('=', StringComparison.Ordinal);
+            if (separator <= 0)
+            {
+                continue;
+            }
+
+            var name = part[..separator];
+            var value = Uri.UnescapeDataString(part[(separator + 1)..]);
+            if (name == "filename")
+            {
+                filename = value;
+            }
+            else if (name == "videoSize" && long.TryParse(value, NumberStyles.None, CultureInfo.InvariantCulture, out var size))
+            {
+                videoSize = size;
+            }
+        }
+
+        return (filename, videoSize);
+    }
+
+    // Only answer for our own files. The same movie played from another addon is a different
+    // release, and Jellyfin's subtitles would be out of sync with it.
+    internal static bool SourceMatchesPlayingFile(MediaSourceInfo source, string? filename, long? videoSize)
+    {
+        if (videoSize.HasValue && source.Size == videoSize)
+        {
+            return true;
+        }
+
+        return !string.IsNullOrEmpty(filename)
+            && !string.IsNullOrEmpty(source.Path)
+            && string.Equals(Path.GetFileName(source.Path), filename, StringComparison.OrdinalIgnoreCase);
+    }
+
     internal static string BuildSubtitleUrl(
         string baseUrl,
         Guid itemId,
@@ -682,32 +765,10 @@ public class AddonController : ControllerBase
                     ? new MediaStream?[] { null }
                     : audioStreams.Cast<MediaStream?>().ToArray();
 
-                var subtitleStreams = source.MediaStreams
-                    .Where(stream => stream.Type == MediaStreamType.Subtitle && stream.IsTextSubtitleStream)
-                    .OrderByDescending(stream => stream.IsDefault)
-                    .ThenByDescending(stream => stream.IsForced)
-                    .ThenBy(stream => stream.Index)
+                var subtitleStreams = GetTextSubtitleStreams(source);
+                var subtitles = subtitleStreams
+                    .Select(sub => ToSubtitleDto(sub, dto.Id, source.Id, baseUrl, authToken))
                     .ToList();
-
-                var subtitles = subtitleStreams.Select(sub =>
-                {
-                    var format = sub.Codec switch
-                    {
-                        "subrip" => "srt",
-                        "ass" => "ass",
-                        "webvtt" => "vtt",
-                        _ => "srt",
-                    };
-                    // A bare language code lets clients show a proper language name; the
-                    // track title (e.g. "SDH") rides along in the optional label.
-                    return new SubtitleDto
-                    {
-                        Id = $"jelliopp-{dto.Id}-{sub.Index}",
-                        Url = BuildSubtitleUrl(baseUrl, dto.Id, source.Id, sub.Index, format, authToken),
-                        Lang = string.IsNullOrEmpty(sub.Language) ? "und" : sub.Language,
-                        Label = string.IsNullOrEmpty(sub.Title) ? null : sub.Title,
-                    };
-                }).ToList();
 
                 /*
                  * Adaptive mode preserves original quality when possible.
@@ -890,6 +951,13 @@ public class AddonController : ControllerBase
                     name = "meta",
                     types = new[] { "movie", "series" },
                     idPrefixes = new[] { "jelliopp" },
+                },
+                // Stremio ignores the subtitles listed on a stream, so it asks for them here.
+                new
+                {
+                    name = "subtitles",
+                    types = new[] { "movie", "series" },
+                    idPrefixes = new[] { "tt", "jelliopp" },
                 },
             },
             types = new[] { "movie", "series" },
@@ -1133,5 +1201,103 @@ public class AddonController : ControllerBase
 
         LogBuffer.AddLog($"[Stream] Returning streams for {episodeItems.Count} episode(s)", LogLevel.Info);
         return GetStreamsResult(userId, episodeItems, config.AuthToken, config.PublicBaseUrl);
+    }
+
+    [HttpGet("subtitles/{stremioType}/jelliopp:{mediaId:guid}/{extra}.json")]
+    [HttpGet("subtitles/{stremioType}/jelliopp:{mediaId:guid}.json")]
+    public IActionResult GetSubtitles(
+        [ConfigFromBase64Json] ConfigModel config,
+        StremioType stremioType,
+        Guid mediaId,
+        string? extra = null
+    )
+    {
+        var userId = (Guid)HttpContext.Items["JellioUserId"]!;
+        var item = _libraryManager.GetItemById<BaseItem>(mediaId, userId);
+        return GetSubtitlesResult(userId, item == null ? [] : [item], config, extra);
+    }
+
+    [HttpGet("subtitles/movie/tt{imdbId}/{extra}.json")]
+    [HttpGet("subtitles/movie/tt{imdbId}.json")]
+    public IActionResult GetSubtitlesImdbMovie(
+        [ConfigFromBase64Json] ConfigModel config,
+        string imdbId,
+        string? extra = null
+    )
+    {
+        var userId = (Guid)HttpContext.Items["JellioUserId"]!;
+        var user = _userManager.GetUserById(userId);
+        if (user == null)
+        {
+            return Unauthorized();
+        }
+
+        var items = _libraryManager.GetItemList(new InternalItemsQuery(user)
+        {
+            HasAnyProviderId = new Dictionary<string, string> { ["Imdb"] = $"tt{imdbId}" },
+            IncludeItemTypes = [BaseItemKind.Movie],
+        });
+        return GetSubtitlesResult(userId, items, config, extra);
+    }
+
+    [HttpGet("subtitles/series/tt{imdbId}:{seasonNum:int}:{episodeNum:int}/{extra}.json")]
+    [HttpGet("subtitles/series/tt{imdbId}:{seasonNum:int}:{episodeNum:int}.json")]
+    public IActionResult GetSubtitlesImdbTv(
+        [ConfigFromBase64Json] ConfigModel config,
+        string imdbId,
+        int seasonNum,
+        int episodeNum,
+        string? extra = null
+    )
+    {
+        var userId = (Guid)HttpContext.Items["JellioUserId"]!;
+        var user = _userManager.GetUserById(userId);
+        if (user == null)
+        {
+            return Unauthorized();
+        }
+
+        var seriesIds = _libraryManager.GetItemList(new InternalItemsQuery(user)
+        {
+            IncludeItemTypes = [BaseItemKind.Series],
+            HasAnyProviderId = new Dictionary<string, string> { ["Imdb"] = $"tt{imdbId}" },
+        }).Select(s => s.Id).ToArray();
+        if (seriesIds.Length == 0)
+        {
+            return Ok(new { subtitles = Array.Empty<SubtitleDto>() });
+        }
+
+        var episodes = _libraryManager.GetItemList(new InternalItemsQuery(user)
+        {
+            IncludeItemTypes = [BaseItemKind.Episode],
+            AncestorIds = seriesIds,
+            ParentIndexNumber = seasonNum,
+            IndexNumber = episodeNum,
+        });
+        return GetSubtitlesResult(userId, episodes, config, extra);
+    }
+
+    // Text subtitles of the Jellyfin file that is playing. Without a filename or size there is no
+    // way to tell which file that is, so nothing is returned.
+    private OkObjectResult GetSubtitlesResult(Guid userId, IReadOnlyList<BaseItem> items, ConfigModel config, string? extra)
+    {
+        var (filename, videoSize) = ParseSubtitleExtra(extra);
+        var user = _userManager.GetUserById(userId);
+        if (user == null || items.Count == 0 || (filename == null && videoSize == null))
+        {
+            return Ok(new { subtitles = Array.Empty<SubtitleDto>() });
+        }
+
+        var baseUrl = GetBaseUrl(config.PublicBaseUrl);
+        var dtos = _dtoService.GetBaseItemDtos(items, new DtoOptions(true), user, null, false);
+        var subtitles = dtos
+            .SelectMany(dto => (dto.MediaSources ?? [])
+                .Where(source => SourceMatchesPlayingFile(source, filename, videoSize))
+                .SelectMany(source => GetTextSubtitleStreams(source)
+                    .Select(sub => ToSubtitleDto(sub, dto.Id, source.Id, baseUrl, config.AuthToken))))
+            .ToList();
+
+        LogBuffer.AddLog($"[Subtitles] {subtitles.Count} subtitle(s) for {filename ?? videoSize?.ToString(CultureInfo.InvariantCulture)}", LogLevel.Info);
+        return Ok(new { subtitles });
     }
 }
