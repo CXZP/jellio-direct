@@ -2,7 +2,7 @@ name: Build and Release
 
 on:
   release:
-    types: [created, published]
+    types: [published]
 
 jobs:
   release:
@@ -43,39 +43,6 @@ jobs:
           VERSION_NUMBER="${TAG_NAME#v}"
           echo "Using version from tag: ${VERSION_NUMBER}"
           echo "version_number=${VERSION_NUMBER}" >> $GITHUB_OUTPUT
-
-      - name: Update Changelog in Build Config
-        run: |
-          echo "Updating changelog in build config..."
-          python3 -m pip install --user PyYAML
-
-          cat << EOF > update_yaml.py
-          import yaml
-          import os
-          import sys
-
-          config_path = 'jprm.yaml'
-          changelog_text = os.environ.get('RELEASE_BODY')
-
-          try:
-              with open(config_path, 'r') as f:
-                  data = yaml.safe_load(f)
-
-              data['changelog'] = changelog_text
-
-              with open(config_path, 'w') as f:
-                  yaml.dump(data, f, default_flow_style=False, sort_keys=False, allow_unicode=True)
-
-              print(f"Successfully updated changelog in {config_path}")
-
-          except Exception as e:
-              print(f"Error updating YAML file {config_path}: {e}", file=sys.stderr)
-              sys.exit(1)
-          EOF
-
-          python3 update_yaml.py
-        env:
-          RELEASE_BODY: ${{ github.event.release.body }}
 
       - name: Run Tests
         run: dotnet test --verbosity normal
