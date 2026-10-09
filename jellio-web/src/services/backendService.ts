@@ -1,5 +1,8 @@
 import { z } from 'zod';
-import { maxVideoHeightSchema } from '@/components/configForm/formSchema';
+import {
+  episodeListSourceSchema,
+  maxVideoHeightSchema,
+} from '@/components/configForm/formSchema';
 import { getBaseUrl, getOrCreateDeviceId } from '@/lib/utils';
 import { makeApiFetch } from '@/services/apiFetch';
 import { buildAuthHeaders } from '@/services/authHeaders';
@@ -68,6 +71,7 @@ export const saveConfigDataSchema = z.object({
   forceTranscodeAudio: z.boolean(),
   maxVideoBitrate: z.number(),
   maxVideoHeight: maxVideoHeightSchema.optional(),
+  episodeListSource: episodeListSourceSchema.optional(),
   streamDeliveryMode: z.enum(['both', 'direct', 'hls']).optional(),
 });
 

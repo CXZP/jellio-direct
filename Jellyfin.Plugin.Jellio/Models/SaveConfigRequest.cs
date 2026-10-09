@@ -22,6 +22,9 @@ public class SaveConfigRequest
     // Null keeps the saved value, so an older config page doesn't reset it.
     public int? MaxVideoHeight { get; set; }
 
+    // Null keeps the saved value.
+    public string? EpisodeListSource { get; set; }
+
     // Null keeps the saved value, so an older config page doesn't reset it.
     public string? StreamDeliveryMode { get; set; }
 }

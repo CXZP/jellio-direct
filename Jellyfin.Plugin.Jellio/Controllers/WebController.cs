@@ -185,6 +185,7 @@ public class WebController : ControllerBase
                 forceTranscodeAudio = false,
                 maxVideoBitrate = 120,
                 maxVideoHeight = AddonController.DefaultMaxVideoHeight,
+                episodeListSource = AddonController.EpisodeListCinemeta,
                 streamDeliveryMode = AddonController.StreamDeliveryBoth,
             });
         }
@@ -211,6 +212,7 @@ public class WebController : ControllerBase
             forceTranscodeAudio = config.ForceTranscodeAudio,
             maxVideoBitrate = config.MaxVideoBitrate,
             maxVideoHeight = AddonController.NormalizeMaxVideoHeight(config.MaxVideoHeight),
+            episodeListSource = AddonController.NormalizeEpisodeListSource(config.EpisodeListSource),
             streamDeliveryMode = AddonController.NormalizeStreamDeliveryMode(config.StreamDeliveryMode),
         });
     }
@@ -275,6 +277,11 @@ public class WebController : ControllerBase
         config.ForceTranscodeVideo = videoTranscodingMode == TranscodingModeForce;
         config.ForceTranscodeAudio = audioTranscodingMode == TranscodingModeForce;
         config.MaxVideoBitrate = request.MaxVideoBitrate;
+        if (request.EpisodeListSource != null)
+        {
+            config.EpisodeListSource = AddonController.NormalizeEpisodeListSource(request.EpisodeListSource);
+        }
+
         if (request.MaxVideoHeight.HasValue)
         {
             config.MaxVideoHeight = AddonController.NormalizeMaxVideoHeight(request.MaxVideoHeight.Value);

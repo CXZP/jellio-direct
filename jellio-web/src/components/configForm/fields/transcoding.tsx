@@ -20,7 +20,7 @@ interface Props {
 type TranscodingMode = 'adaptive' | 'force' | 'disabled';
 type StreamDeliveryMode = 'both' | 'direct' | 'hls';
 
-interface PickerOption<T extends string> {
+export interface PickerOption<T extends string> {
   value: T;
   label: string;
   description: string;
@@ -128,7 +128,7 @@ const modeSummary: Record<TranscodingMode, string> = {
   disabled: 'no transcode',
 };
 
-const ModePicker = <T extends string>({
+export const ModePicker = <T extends string>({
   value,
   onChange,
   options,

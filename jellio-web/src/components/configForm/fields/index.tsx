@@ -3,3 +3,4 @@ export { ServerNameField } from './serverName.tsx';
 export { JellyseerrFieldset } from './jellyseerr.tsx';
 export { PublicBaseUrlField } from './publicBaseUrl.tsx';
 export { TranscodingFieldset } from './transcoding.tsx';
+export { EpisodeListField } from './episodeList.tsx';

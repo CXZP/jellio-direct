@@ -23,6 +23,10 @@ public class PluginConfiguration : BasePluginConfiguration
     // Tallest picture HLS may send (2160, 1440, 1080 or 720); Jellyfin scales taller video down.
     public int MaxVideoHeight { get; set; } = 2160;
 
+    // Where Stremio gets a series' episode list: "cinemeta" (IMDb id, the default) or "jellyfin"
+    // (Jellyfin's own seasons, numbering and thumbnails).
+    public string? EpisodeListSource { get; set; }
+
     // "direct" (original file), "hls" (Jellyfin HLS with the transcoding settings above) or "both".
     public string? StreamDeliveryMode { get; set; }
 }

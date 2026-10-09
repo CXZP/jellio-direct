@@ -9,6 +9,7 @@ import {
   JellyseerrFieldset,
   PublicBaseUrlField,
   TranscodingFieldset,
+  EpisodeListField,
 } from '@/components/configForm/fields';
 import { formSchema } from '@/components/configForm/formSchema.tsx';
 import { InstallUrlsContainer } from '@/components/configForm/installUrls/InstallUrlsContainer';
@@ -45,6 +46,7 @@ const ConfigForm: FC<Props> = ({ serverInfo }) => {
       forceTranscodeAudio: false,
       maxVideoBitrate: 120,
       maxVideoHeight: 2160,
+      episodeListSource: 'cinemeta',
       streamDeliveryMode: 'both',
     },
   });
@@ -81,6 +83,7 @@ const ConfigForm: FC<Props> = ({ serverInfo }) => {
           forceTranscodeAudio: values.forceTranscodeAudio ?? false,
           maxVideoBitrate: values.maxVideoBitrate ?? 120,
           maxVideoHeight: values.maxVideoHeight ?? 2160,
+          episodeListSource: values.episodeListSource ?? 'cinemeta',
           streamDeliveryMode: values.streamDeliveryMode ?? 'both',
         },
         token: serverInfo.accessToken,
@@ -106,6 +109,7 @@ const ConfigForm: FC<Props> = ({ serverInfo }) => {
           libraries={serverInfo.libraries}
         />
         <PublicBaseUrlField form={form} />
+        <EpisodeListField form={form} />
         <TranscodingFieldset form={form} />
         <JellyseerrFieldset form={form} />
         <InstallUrlsContainer form={form} serverInfo={serverInfo} />

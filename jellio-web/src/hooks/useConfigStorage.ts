@@ -4,6 +4,7 @@ import { z } from 'zod';
 import {
   type ConfigFormType,
   maxVideoHeightSchema,
+  episodeListSourceSchema,
 } from '@/components/configForm/formSchema';
 import { getConfigFromServer } from '@/services/backendService';
 import type { Library } from '@/types';
@@ -34,6 +35,7 @@ const storedConfigSchema = z.object({
   forceTranscodeAudio: z.boolean().optional(),
   maxVideoBitrate: z.number().optional(),
   maxVideoHeight: maxVideoHeightSchema.optional(),
+  episodeListSource: episodeListSourceSchema.optional(),
   streamDeliveryMode: z.enum(['both', 'direct', 'hls']).optional(),
 });
 
@@ -81,6 +83,10 @@ const applyTranscodingConfig = (
 
   if (config.maxVideoBitrate !== undefined) {
     form.setValue('maxVideoBitrate', config.maxVideoBitrate);
+  }
+
+  if (config.episodeListSource !== undefined) {
+    form.setValue('episodeListSource', config.episodeListSource);
   }
 
   if (config.maxVideoHeight !== undefined) {
@@ -189,6 +195,7 @@ export const useConfigStorage = (
         forceTranscodeAudio: values.forceTranscodeAudio,
         maxVideoBitrate: values.maxVideoBitrate,
         maxVideoHeight: values.maxVideoHeight,
+        episodeListSource: values.episodeListSource,
         streamDeliveryMode: values.streamDeliveryMode,
       };
 

@@ -383,6 +383,14 @@ public class AddonController : ControllerBase
             : StreamDeliveryBoth;
     }
 
+    internal const string EpisodeListCinemeta = "cinemeta";
+    internal const string EpisodeListJellyfin = "jellyfin";
+
+    internal static string NormalizeEpisodeListSource(string? source)
+    {
+        return source == EpisodeListJellyfin ? EpisodeListJellyfin : EpisodeListCinemeta;
+    }
+
     internal const int DefaultMaxVideoHeight = 2160;
 
     internal static int NormalizeMaxVideoHeight(int height)
@@ -785,7 +793,8 @@ public class AddonController : ControllerBase
         BaseItemDto dto,
         StremioType stremioType,
         string baseUrl,
-        bool includeDetails = false
+        bool includeDetails = false,
+        bool useJellyfinId = false
     )
     {
         string? releaseInfo = null;
@@ -809,7 +818,9 @@ public class AddonController : ControllerBase
 
         var meta = new MetaDto
         {
-            Id = dto.ProviderIds.TryGetValue("Imdb", out var idVal) ? idVal : $"jelliopp:{dto.Id}",
+            // An IMDb id lets Stremio use Cinemeta's details and episode list (and other addons
+            // find the title); a jelliopp id makes it ask this addon instead.
+            Id = !useJellyfinId && dto.ProviderIds.TryGetValue("Imdb", out var idVal) ? idVal : $"jelliopp:{dto.Id}",
             Type = stremioType.ToString().ToLower(CultureInfo.InvariantCulture),
             Name = dto.Name,
             Poster = $"{baseUrl}/Items/{dto.Id}/Images/Primary",
@@ -1149,7 +1160,9 @@ public class AddonController : ControllerBase
         var result = folder.GetItems(query);
         var dtos = _dtoService.GetBaseItemDtos(result.Items, dtoOptions, user, null, true);
         var baseUrl = GetBaseUrl(config.PublicBaseUrl);
-        var metas = dtos.Select(dto => MapToMeta(dto, stremioType, baseUrl));
+        var useJellyfinIds = stremioType == StremioType.Series
+            && NormalizeEpisodeListSource(Plugin.Instance?.Configuration.EpisodeListSource) == EpisodeListJellyfin;
+        var metas = dtos.Select(dto => MapToMeta(dto, stremioType, baseUrl, useJellyfinId: useJellyfinIds));
 
         return Ok(new { metas });
     }
@@ -1181,7 +1194,8 @@ public class AddonController : ControllerBase
         };
         var dto = _dtoService.GetBaseItemDto(item, dtoOptions, user);
         var baseUrl = GetBaseUrl(config.PublicBaseUrl);
-        var meta = MapToMeta(dto, stremioType, baseUrl, includeDetails: true);
+        // Answer with the id that was asked for, even when the item also has an IMDb id.
+        var meta = MapToMeta(dto, stremioType, baseUrl, includeDetails: true, useJellyfinId: true);
 
         if (stremioType is StremioType.Series)
         {
