@@ -1,15 +1,13 @@
 import type { FC } from 'react';
 import type { UseFormReturn } from 'react-hook-form';
-import { ModePicker, type PickerOption } from './transcoding.tsx';
 import type { ConfigFormType } from '@/components/configForm/formSchema.tsx';
 import {
-  FormControl,
-  FormDescription,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from '@/components/ui/form.tsx';
+  optionDescription,
+  SettingsRow,
+  SettingsSelect,
+  type PickerOption,
+} from '@/components/settings.tsx';
+import { FormField } from '@/components/ui/form.tsx';
 
 interface Props {
   form: UseFormReturn<ConfigFormType>;
@@ -21,6 +19,7 @@ const OPTIONS: PickerOption<EpisodeListSource>[] = [
   {
     value: 'cinemeta',
     label: 'Cinemeta (IMDb)',
+    recommended: true,
     description:
       "IMDb's episode list. Other addons (OpenSubtitles, stream addons) work with these series too, but specials can be numbered differently from Jellyfin.",
   },
@@ -37,25 +36,23 @@ export const EpisodeListField: FC<Props> = ({ form }) => {
     <FormField
       control={form.control}
       name="episodeListSource"
-      render={({ field }) => (
-        <FormItem className="rounded-lg border p-2">
-          <FormLabel className="text-base">Series episode list</FormLabel>
-          <FormControl>
-            <ModePicker
-              value={field.value ?? 'cinemeta'}
+      render={({ field }) => {
+        const value = field.value ?? 'cinemeta';
+        return (
+          <SettingsRow
+            label="Episode list"
+            description={optionDescription(OPTIONS, value)}
+            htmlFor="episodeListSource"
+          >
+            <SettingsSelect
+              id="episodeListSource"
+              value={value}
               onChange={field.onChange}
               options={OPTIONS}
-              columns="md:grid-cols-2"
             />
-          </FormControl>
-          <FormDescription>
-            Only affects series opened from this addon&apos;s catalogs.
-            Switching gives them a new id in Stremio, so their watch progress
-            starts over.
-          </FormDescription>
-          <FormMessage />
-        </FormItem>
-      )}
+          </SettingsRow>
+        );
+      }}
     />
   );
 };

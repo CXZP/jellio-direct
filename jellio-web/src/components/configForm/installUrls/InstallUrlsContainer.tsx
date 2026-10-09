@@ -4,8 +4,8 @@ import type { UseFormReturn } from 'react-hook-form';
 import type { ConfigFormType } from '@/components/configForm/formSchema';
 import { InstallUrls } from '@/components/configForm/installUrls/InstallUrls';
 import { formatInstallError } from '@/components/configForm/installUrls/urls';
+import { glassFrame } from '@/components/settings.tsx';
 import { Button } from '@/components/ui/button';
-import { Label } from '@/components/ui/label';
 import { startAddonSession } from '@/services/backendService';
 import type { ServerInfo } from '@/types';
 
@@ -45,8 +45,7 @@ export const InstallUrlsContainer = ({
     [serverInfo.accessToken],
   );
   return (
-    <div className="rounded-lg border p-2 space-y-2">
-      <Label className="text-base">Install</Label>
+    <div className={`space-y-3 p-4 ${glassFrame}`}>
       <ErrorBoundary
         resetKeys={[tokenPromise]}
         fallbackRender={({ error }) => (

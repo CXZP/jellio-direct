@@ -4,6 +4,7 @@
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
+  --font-sans: 'Google Sans', ui-sans-serif, system-ui, sans-serif;
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
@@ -117,4 +118,150 @@
   body {
     @apply bg-background text-foreground;
   }
+}
+
+.glass-range {
+  appearance: none;
+  height: 1.75rem;
+  background: transparent;
+  cursor: pointer;
+}
+.glass-range:focus-visible {
+  outline: none;
+}
+.glass-range::-webkit-slider-runnable-track {
+  height: 6px;
+  border-radius: 9999px;
+  background: linear-gradient(
+    to right,
+    #3b82f6 var(--fill),
+    color-mix(in oklab, currentColor 18%, transparent) var(--fill)
+  );
+}
+.glass-range::-webkit-slider-thumb {
+  appearance: none;
+  margin-top: -9px;
+  width: 38px;
+  height: 24px;
+  border-radius: 9999px;
+  background: rgb(255 255 255 / 0.85);
+  box-shadow:
+    0 2px 6px rgb(0 0 0 / 0.3),
+    inset 0 0 0 1px rgb(255 255 255 / 0.7);
+}
+.glass-range:focus-visible::-webkit-slider-thumb {
+  box-shadow:
+    0 0 0 3px rgb(59 130 246 / 0.5),
+    0 2px 6px rgb(0 0 0 / 0.3);
+}
+.glass-range::-moz-range-track {
+  height: 6px;
+  border-radius: 9999px;
+  background: color-mix(in oklab, currentColor 18%, transparent);
+}
+.glass-range::-moz-range-progress {
+  height: 6px;
+  border-radius: 9999px;
+  background: #3b82f6;
+}
+.glass-range::-moz-range-thumb {
+  width: 38px;
+  height: 24px;
+  border: none;
+  border-radius: 9999px;
+  background: rgb(255 255 255 / 0.85);
+  box-shadow: 0 2px 6px rgb(0 0 0 / 0.3);
+}
+
+/* Theme and layout changes cross-fade a little slower than the browser default. */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: 400ms;
+  animation-timing-function: cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+/* Thin scrollbars in the page's own greys instead of the system ones. */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgb(0 0 0 / 0.22) transparent;
+}
+.dark * {
+  scrollbar-color: rgb(255 255 255 / 0.2) transparent;
+}
+
+@keyframes menu-in {
+  from {
+    opacity: 0;
+    transform: scale(0.9) translateY(-6px);
+  }
+}
+@keyframes menu-out {
+  to {
+    opacity: 0;
+    transform: scale(0.96) translateY(-4px);
+  }
+}
+@keyframes menu-in-up {
+  from {
+    opacity: 0;
+    transform: scale(0.9) translateY(6px);
+  }
+}
+@keyframes menu-out-up {
+  to {
+    opacity: 0;
+    transform: scale(0.96) translateY(4px);
+  }
+}
+@keyframes tip-in {
+  from {
+    opacity: 0;
+  }
+}
+
+/* Switching layouts: one page drops down into place, sections lift up. The old content
+   leaves first and the new one starts after it, so the two never show on top of each other. */
+@keyframes vt-from-above {
+  from {
+    opacity: 0;
+    transform: translateY(-40px);
+  }
+}
+@keyframes vt-from-below {
+  from {
+    opacity: 0;
+    transform: translateY(40px);
+  }
+}
+@keyframes vt-out-down {
+  to {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+}
+@keyframes vt-out-up {
+  to {
+    opacity: 0;
+    transform: translateY(-24px);
+  }
+}
+/* Named only while switching. The scrolling area is captured (not its full-height content),
+   and its group clips the slide, so nothing shows past the Save bar. */
+html[data-vt] .vt-content {
+  view-transition-name: content;
+}
+::view-transition-group(content) {
+  overflow: clip;
+}
+html[data-vt='down']::view-transition-new(content) {
+  animation: vt-from-above 420ms cubic-bezier(0.32, 0.72, 0, 1) 100ms both;
+}
+html[data-vt='down']::view-transition-old(content) {
+  animation: vt-out-down 140ms ease-in both;
+}
+html[data-vt='up']::view-transition-new(content) {
+  animation: vt-from-below 420ms cubic-bezier(0.32, 0.72, 0, 1) 100ms both;
+}
+html[data-vt='up']::view-transition-old(content) {
+  animation: vt-out-up 140ms ease-in both;
 }

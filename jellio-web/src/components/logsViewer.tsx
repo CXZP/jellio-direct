@@ -1,14 +1,19 @@
 import { type FC, useCallback, useEffect, useState } from 'react';
 import { ChevronDown, ChevronUp, RefreshCw, Trash2 } from 'lucide-react';
+import { glassButton, glassFrame } from '@/components/settings.tsx';
 import { Button } from '@/components/ui/button';
 import { getLogs, clearLogs, type LogEntry } from '@/services/backendService';
 
 interface LogsViewerProps {
   accessToken?: string;
+  defaultOpen?: boolean;
 }
 
-export const LogsViewer: FC<LogsViewerProps> = ({ accessToken }) => {
-  const [isOpen, setIsOpen] = useState(false);
+export const LogsViewer: FC<LogsViewerProps> = ({
+  accessToken,
+  defaultOpen = false,
+}) => {
+  const [isOpen, setIsOpen] = useState(defaultOpen);
   const [logs, setLogs] = useState<LogEntry[]>([]);
   const [loading, setLoading] = useState(false);
   const [autoRefresh, setAutoRefresh] = useState(false);
@@ -54,11 +59,11 @@ export const LogsViewer: FC<LogsViewerProps> = ({ accessToken }) => {
   const getLevelColor = (level: string) => {
     switch (level) {
       case 'Error':
-        return 'text-red-400';
+        return 'text-red-500';
       case 'Warning':
-        return 'text-yellow-400';
+        return 'text-amber-500';
       default:
-        return 'text-gray-300';
+        return 'text-sky-600 dark:text-sky-400';
     }
   };
 
@@ -72,14 +77,14 @@ export const LogsViewer: FC<LogsViewerProps> = ({ accessToken }) => {
   };
 
   return (
-    <div className="w-full border rounded-lg bg-background">
+    <div className={`w-full overflow-hidden ${glassFrame}`}>
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className="w-full flex items-center justify-between p-4 hover:bg-accent transition-colors"
+        className="flex w-full items-center justify-between px-4 py-3 transition-colors hover:bg-black/5 dark:hover:bg-white/5"
       >
         <div className="flex items-center gap-2">
-          <span className="font-semibold">Jellio Direct Logs</span>
+          <span className="text-sm font-medium">Plugin log</span>
           {logs.length > 0 && (
             <span className="text-sm text-muted-foreground">
               ({logs.length} entries)
@@ -94,12 +99,12 @@ export const LogsViewer: FC<LogsViewerProps> = ({ accessToken }) => {
       </button>
 
       {isOpen && (
-        <div className="border-t p-4 space-y-3">
+        <div className="space-y-3 border-t border-black/5 p-4 dark:border-white/10">
           <div className="flex gap-2 justify-end">
             <Button
               type="button"
-              variant="outline"
-              size="sm"
+              variant="ghost"
+              className={glassButton}
               onClick={() => void fetchLogs()}
               disabled={loading}
             >
@@ -110,8 +115,8 @@ export const LogsViewer: FC<LogsViewerProps> = ({ accessToken }) => {
             </Button>
             <Button
               type="button"
-              variant="outline"
-              size="sm"
+              variant="ghost"
+              className={glassButton}
               onClick={() => void handleClearLogs()}
             >
               <Trash2 className="mr-2 h-4 w-4" />
@@ -119,21 +124,23 @@ export const LogsViewer: FC<LogsViewerProps> = ({ accessToken }) => {
             </Button>
             <Button
               type="button"
-              variant="outline"
-              size="sm"
+              variant="ghost"
+              className={glassButton}
               onClick={() => setAutoRefresh(!autoRefresh)}
             >
               {autoRefresh ? 'Stop Auto-Refresh' : 'Auto-Refresh'}
             </Button>
           </div>
-          <div className="h-96 w-full border rounded p-4 bg-black text-green-400 font-mono text-sm overflow-y-auto">
+          <div className="h-96 w-full overflow-y-auto rounded-2xl border border-black/10 bg-background/80 p-4 font-mono text-xs leading-5 dark:border-white/10">
             {logs.length === 0 ? (
-              <div className="text-center text-gray-500">No logs available</div>
+              <div className="text-center text-muted-foreground">
+                No log entries yet.
+              </div>
             ) : (
               <div className="space-y-1">
                 {logs.map((log, index) => (
                   <div key={index} className="flex gap-2">
-                    <span className="text-gray-500 text-xs whitespace-nowrap">
+                    <span className="whitespace-nowrap text-muted-foreground">
                       {formatTimestamp(log.timestamp)}
                     </span>
                     <span

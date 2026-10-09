@@ -1,6 +1,5 @@
 import type { FC } from 'react';
 import ConfigForm from '@/components/configForm';
-import Header from '@/components/header.tsx';
 import type { ServerInfo } from '@/types';
 
 interface Props {
@@ -14,19 +13,7 @@ const ConfigFormPage: FC<Props> = ({ serverInfo }) => {
     hostname === 'localhost' ||
     hostname === '127.0.0.1';
 
-  return (
-    <div className="mx-auto max-w-2xl xl:max-w-6xl">
-      <Header />
-      {!isSecure && (
-        <div className="p-4 mb-4 bg-yellow-100 text-yellow-800 rounded">
-          Warning: Stremio requires addons to be served over HTTPS or from
-          localhost. Please configure your Jellyfin instance with a valid SSL
-          certificate or use localhost (127.0.0.1) to install this addon.
-        </div>
-      )}
-      <ConfigForm serverInfo={serverInfo} />
-    </div>
-  );
+  return <ConfigForm serverInfo={serverInfo} insecure={!isSecure} />;
 };
 
 export default ConfigFormPage;

@@ -1,6 +1,7 @@
 import { type FC, useState } from 'react';
 import { ExternalLink } from 'lucide-react';
 import { CopyButton } from '@/components/configForm/installUrls/CopyButton';
+import { glassButton, glassField } from '@/components/settings.tsx';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -35,7 +36,7 @@ export const InstallUrlRow: FC<Props> = ({
           value={url}
           onFocus={(event) => event.currentTarget.select()}
           onClick={(event) => event.currentTarget.select()}
-          className="font-mono text-xs cursor-pointer"
+          className={`cursor-pointer font-mono text-xs ${glassField}`}
         />
         {canCopy && (
           <CopyButton
@@ -47,7 +48,8 @@ export const InstallUrlRow: FC<Props> = ({
         {onLaunch && (
           <Button
             type="button"
-            variant="outline"
+            variant="ghost"
+            className={glassButton}
             onClick={onLaunch}
             aria-label={`Install via ${label}`}
           >

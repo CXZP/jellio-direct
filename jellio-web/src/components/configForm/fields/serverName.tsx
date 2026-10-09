@@ -1,14 +1,9 @@
 import type { FC } from 'react';
 import type { UseFormReturn } from 'react-hook-form';
 import type { ConfigFormType } from '@/components/configForm/formSchema.tsx';
-import {
-  FormControl,
-  FormDescription,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from '@/components/ui/form.tsx';
+import { SettingsRow } from '@/components/settings.tsx';
+import { glassField } from '@/components/settings.tsx';
+import { FormField } from '@/components/ui/form.tsx';
 import { Input } from '@/components/ui/input.tsx';
 
 interface Props {
@@ -20,17 +15,19 @@ export const ServerNameField: FC<Props> = ({ form }) => {
     <FormField
       control={form.control}
       name="serverName"
-      render={({ field }) => (
-        <FormItem className="rounded-lg border p-2">
-          <FormLabel className="text-base">Server name</FormLabel>
-          <FormControl>
-            <Input {...field} />
-          </FormControl>
-          <FormDescription>
-            Friendly server name for display in the Stremio UI.
-          </FormDescription>
-          <FormMessage />
-        </FormItem>
+      render={({ field, fieldState }) => (
+        <SettingsRow
+          label="Server name"
+          description="Shown after each catalog name in Stremio, e.g. “Movies | Jellyfin”."
+          htmlFor="serverName"
+          error={fieldState.error?.message}
+        >
+          <Input
+            id="serverName"
+            className={`w-full sm:w-64 ${glassField}`}
+            {...field}
+          />
+        </SettingsRow>
       )}
     />
   );

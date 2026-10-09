@@ -1,15 +1,8 @@
 import type { FC } from 'react';
 import type { UseFormReturn } from 'react-hook-form';
 import type { ConfigFormType } from '@/components/configForm/formSchema.tsx';
-import { Checkbox } from '@/components/ui/checkbox.tsx';
-import {
-  FormControl,
-  FormDescription,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from '@/components/ui/form.tsx';
+import { SettingsRow, Switch } from '@/components/settings.tsx';
+import { FormField } from '@/components/ui/form.tsx';
 import type { Library } from '@/types';
 
 interface Props {
@@ -23,64 +16,49 @@ export const LibrariesField: FC<Props> = ({ form, serverName, libraries }) => {
     <FormField
       control={form.control}
       name="libraries"
-      render={() => (
-        <FormItem className="rounded-lg border p-2">
-          <div className="mb-4">
-            <FormLabel className="text-base">Catalogs</FormLabel>
-            <FormDescription>
-              Select which Jellyfin libraries to include in Stremio discovery.
-            </FormDescription>
-          </div>
-          {libraries.length > 0 ? (
-            libraries.map((item: Library) => (
-              <FormField
-                key={item.key}
-                control={form.control}
-                name="libraries"
-                render={({ field }) => {
-                  return (
-                    <FormItem
-                      key={item.key}
-                      className="flex flex-row items-start space-x-3 space-y-0"
-                    >
-                      <FormControl>
-                        <Checkbox
-                          checked={field.value.some((v) => v.key === item.key)}
-                          onCheckedChange={(checked) => {
-                            return checked
-                              ? field.onChange([
-                                  ...field.value,
-                                  {
-                                    key: item.key,
-                                    name: item.name,
-                                    type: item.type,
-                                  },
-                                ])
-                              : field.onChange(
-                                  field.value.filter(
-                                    (value) => value.key !== item.key,
-                                  ),
-                                );
-                          }}
-                        />
-                      </FormControl>
-                      <FormLabel className="font-normal">{`${item.name} | ${serverName}`}</FormLabel>
-                    </FormItem>
-                  );
-                }}
-              />
-            ))
-          ) : (
-            <div className="flex flex-col items-center justify-center">
-              <div className="w-16 h-16 rounded-full animate-spin border-t-4 border-muted-foreground" />
-              <span className="mt-4 text-lg text-muted-foreground text-center">
-                No libs :(
-              </span>
-            </div>
-          )}
-          <FormMessage />
-        </FormItem>
-      )}
+      render={({ field }) =>
+        libraries.length > 0 ? (
+          <>
+            {libraries.map((item: Library) => {
+              const checked = field.value.some((v) => v.key === item.key);
+              return (
+                <SettingsRow
+                  key={item.key}
+                  label={item.name}
+                  description={`Shown in Stremio as “${item.name} | ${serverName}”.`}
+                  htmlFor={`library-${item.key}`}
+                >
+                  <Switch
+                    id={`library-${item.key}`}
+                    checked={checked}
+                    onCheckedChange={(on) =>
+                      field.onChange(
+                        on
+                          ? [
+                              ...field.value,
+                              {
+                                key: item.key,
+                                name: item.name,
+                                type: item.type,
+                              },
+                            ]
+                          : field.value.filter(
+                              (value) => value.key !== item.key,
+                            ),
+                      )
+                    }
+                  />
+                </SettingsRow>
+              );
+            })}
+          </>
+        ) : (
+          <SettingsRow
+            label="No libraries found"
+            description="Only movie and show libraries can become catalogs."
+          />
+        )
+      }
     />
   );
 };

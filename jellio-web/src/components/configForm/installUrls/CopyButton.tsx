@@ -1,5 +1,6 @@
 import { type FC, useEffect, useRef, useState } from 'react';
 import { Copy } from 'lucide-react';
+import { glassButton } from '@/components/settings.tsx';
 import { Button } from '@/components/ui/button';
 
 interface Props {
@@ -34,10 +35,10 @@ export const CopyButton: FC<Props> = ({ onCopy, onError, ariaLabel }) => {
   return (
     <Button
       type="button"
-      variant="outline"
+      variant="ghost"
       onClick={onClick}
       aria-label={ariaLabel}
-      className="cursor-pointer"
+      className={`cursor-pointer ${glassButton}`}
     >
       <Copy className="h-4 w-4" />
       {copied ? 'Copied' : 'Copy'}

@@ -1,17 +1,14 @@
 import type { FC } from 'react';
 import type { UseFormReturn } from 'react-hook-form';
 import type { ConfigFormType } from '@/components/configForm/formSchema.tsx';
-import { Checkbox } from '@/components/ui/checkbox.tsx';
 import {
-  FormControl,
-  FormDescription,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from '@/components/ui/form.tsx';
+  glassField,
+  SettingsGroup,
+  SettingsRow,
+  Switch,
+} from '@/components/settings.tsx';
+import { FormField } from '@/components/ui/form.tsx';
 import { Input } from '@/components/ui/input.tsx';
-import { Label } from '@/components/ui/label.tsx';
 
 interface Props {
   form: UseFormReturn<ConfigFormType>;
@@ -20,77 +17,68 @@ interface Props {
 export const JellyseerrFieldset: FC<Props> = ({ form }) => {
   const enabled = form.watch('jellyseerrEnabled');
   return (
-    <div className="rounded-lg border p-2 space-y-2">
-      <Label className="text-base">Jellyseerr integration</Label>
+    <SettingsGroup>
       <FormField
         control={form.control}
         name="jellyseerrEnabled"
         render={({ field }) => (
-          <FormItem className="flex items-center justify-between py-2">
-            <div>
-              <FormLabel>Enable Jellyseerr</FormLabel>
-              <FormDescription>
-                Show a "Request via Jellyseerr" option when no stream is
-                available.
-              </FormDescription>
-            </div>
-            <FormControl>
-              <Checkbox
-                checked={field.value}
-                onCheckedChange={field.onChange}
-              />
-            </FormControl>
-            <FormMessage />
-          </FormItem>
+          <SettingsRow
+            label="Request via Jellyseerr"
+            description="Offer a request option in Stremio when a title isn't on your server."
+            htmlFor="jellyseerrEnabled"
+          >
+            <Switch
+              id="jellyseerrEnabled"
+              checked={field.value ?? false}
+              onCheckedChange={field.onChange}
+            />
+          </SettingsRow>
         )}
       />
-
       {enabled && (
-        <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+        <>
           <FormField
             control={form.control}
             name="jellyseerrUrl"
-            render={({ field }) => (
-              <FormItem className="flex flex-col">
-                <FormLabel>Jellyseerr Base URL</FormLabel>
-                <FormControl>
-                  <Input
-                    placeholder="https://jellyseerr.example.com"
-                    {...field}
-                  />
-                </FormControl>
-                <FormDescription className="text-xs min-h-[2.5rem]">
-                  <strong>
-                    Use your local address. Do not include a trailing slash
-                    (e.g. "http://192.168.0.105:5055").
-                  </strong>
-                </FormDescription>
-                <FormMessage />
-              </FormItem>
+            render={({ field, fieldState }) => (
+              <SettingsRow
+                stacked
+                label="Jellyseerr URL"
+                description="Your local address, without a trailing slash."
+                htmlFor="jellyseerrUrl"
+                error={fieldState.error?.message}
+              >
+                <Input
+                  id="jellyseerrUrl"
+                  className={glassField}
+                  placeholder="http://192.168.0.105:5055"
+                  {...field}
+                />
+              </SettingsRow>
             )}
           />
           <FormField
             control={form.control}
             name="jellyseerrApiKey"
             render={({ field }) => (
-              <FormItem className="flex flex-col">
-                <FormLabel>Jellyseerr API Key</FormLabel>
-                <FormControl>
-                  <Input
-                    type="password"
-                    placeholder="paste API key"
-                    {...field}
-                  />
-                </FormControl>
-                <FormDescription className="text-xs min-h-[2.5rem]">
-                  Required for automatic API requests.
-                </FormDescription>
-                <FormMessage />
-              </FormItem>
+              <SettingsRow
+                stacked
+                label="API key"
+                description="Needed to send requests to Jellyseerr."
+                htmlFor="jellyseerrApiKey"
+              >
+                <Input
+                  id="jellyseerrApiKey"
+                  className={glassField}
+                  type="password"
+                  placeholder="Paste the API key"
+                  {...field}
+                />
+              </SettingsRow>
             )}
           />
-        </div>
+        </>
       )}
-    </div>
+    </SettingsGroup>
   );
 };
