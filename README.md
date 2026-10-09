@@ -1,5 +1,5 @@
 # Jellio Direct (unofficial, temporary)
-[![Release](https://img.shields.io/github/v/release/CXZP/jellio-plus-plus-plus)](https://github.com/CXZP/jellio-plus-plus-plus/releases)
+[![Release](https://img.shields.io/github/v/release/CXZP/jellio-direct)](https://github.com/CXZP/jellio-direct/releases)
 
 > **This is a temporary build.** It exists only until direct play lands in
 > [Jellio++](https://github.com/wujekbogdan/jellio-plus-plus) itself
@@ -20,7 +20,7 @@
 
 **Installing**
 
-Download the zip from [Releases](https://github.com/CXZP/jellio-plus-plus-plus/releases) and follow the
+Download the zip from [Releases](https://github.com/CXZP/jellio-direct/releases) and follow the
 [Installation](#installation) steps below.
 
 It uses its own plugin ID, addon ID and URLs (`/jelliodirect/...`), so it can be
@@ -89,7 +89,7 @@ NOTICE: If Stremio runs on the same computer as Jellyfin, the default `http://12
 
 Jellio Direct isn't in a plugin repository; install it from the zip:
 
-1. Download `jellio-direct_<version>.zip` from [Releases](https://github.com/CXZP/jellio-plus-plus-plus/releases)
+1. Download `jellio-direct_<version>.zip` from [Releases](https://github.com/CXZP/jellio-direct/releases)
 2. Extract it into a new folder in Jellyfin's `plugins` directory (for example `C:\ProgramData\Jellyfin\Server\plugins\JellioDirect` on Windows, `/var/lib/jellyfin/plugins/JellioDirect` on Linux)
 3. Restart Jellyfin
 4. Jellyfin Dashboard > Plugins > Installed > Jellio Direct and then click "Settings"

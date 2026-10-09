@@ -35,12 +35,12 @@ const QUESTIONS = [
   {
     id: 'where-find-support',
     question: `Where can I find support?`,
-    answer: `Open an issue on the GitHub repository: github.com/CXZP/jellio-plus-plus-plus.`,
+    answer: `Open an issue on the GitHub repository: github.com/CXZP/jellio-direct.`,
   },
   {
     id: 'is-jellio-free',
     question: `Is Jellio Direct free and open source?`,
-    answer: `Yes, Jellio Direct is completely free and open source under the GPL-3.0 license. The source is on GitHub: github.com/CXZP/jellio-plus-plus-plus.`,
+    answer: `Yes, Jellio Direct is completely free and open source under the GPL-3.0 license. The source is on GitHub: github.com/CXZP/jellio-direct.`,
   },
 ];
 
