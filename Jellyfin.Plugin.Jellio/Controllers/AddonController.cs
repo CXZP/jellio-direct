@@ -84,6 +84,121 @@ public class AddonController : ControllerBase
         return null;
     }
 
+    // Stremio numbers episodes like Cinemeta (IMDb); Jellyfin usually follows TVDB. Anime specials
+    // and later cours often end up in different places (IMDb "Special 1" can be TVDB S1E13), so a
+    // season/episode that Jellyfin doesn't have is looked up by its Cinemeta name and air date.
+    private async Task<IReadOnlyList<BaseItem>> FindEpisodesViaCinemeta(
+        Guid userId,
+        Guid[] seriesIds,
+        string imdbId,
+        int seasonNum,
+        int episodeNum)
+    {
+        var user = _userManager.GetUserById(userId);
+        if (user == null)
+        {
+            return [];
+        }
+
+        var (name, released) = await GetCinemetaEpisode(imdbId, seasonNum, episodeNum);
+        if (name == null && released == null)
+        {
+            return [];
+        }
+
+        var episodes = _libraryManager.GetItemList(new InternalItemsQuery(user)
+        {
+            IncludeItemTypes = [BaseItemKind.Episode],
+            // Jellyfin adds file-less "missing" episodes from online metadata; those can't play.
+            IsVirtualItem = false,
+            AncestorIds = seriesIds,
+        });
+        var matches = MatchEpisodes(episodes, e => e.Name, e => e.PremiereDate, name, released);
+        LogBuffer.AddLog($"[Stream] tt{imdbId}:{seasonNum}:{episodeNum} is \"{name}\" on Cinemeta; {matches.Count} Jellyfin match(es)", LogLevel.Info);
+        return matches;
+    }
+
+    private async Task<(string? Name, DateTime? Released)> GetCinemetaEpisode(string imdbId, int seasonNum, int episodeNum)
+    {
+        try
+        {
+            using var response = await _httpClient.GetAsync($"https://v3-cinemeta.strem.io/meta/series/tt{imdbId}.json");
+            if (!response.IsSuccessStatusCode)
+            {
+                return (null, null);
+            }
+
+            using var doc = JsonDocument.Parse(await response.Content.ReadAsStreamAsync());
+            if (!doc.RootElement.TryGetProperty("meta", out var meta)
+                || !meta.TryGetProperty("videos", out var videos)
+                || videos.ValueKind != JsonValueKind.Array)
+            {
+                return (null, null);
+            }
+
+            foreach (var video in videos.EnumerateArray())
+            {
+                if (video.TryGetProperty("season", out var season) && season.TryGetInt32(out var s) && s == seasonNum
+                    && video.TryGetProperty("episode", out var episode) && episode.TryGetInt32(out var e) && e == episodeNum)
+                {
+                    var name = video.TryGetProperty("name", out var n) ? n.GetString() : null;
+                    DateTime? released = video.TryGetProperty("released", out var r) && r.TryGetDateTime(out var date)
+                        ? date
+                        : null;
+                    return (name, released);
+                }
+            }
+        }
+        catch (Exception ex) when (ex is HttpRequestException or JsonException or TaskCanceledException)
+        {
+            // Without Cinemeta there's nothing to match on.
+        }
+
+        return (null, null);
+    }
+
+    // Match by name first (ignoring case, spacing and punctuation), then by air date when exactly
+    // one episode aired within a day of it (Cinemeta stores UTC times, Jellyfin local dates).
+    internal static List<T> MatchEpisodes<T>(
+        IEnumerable<T> episodes,
+        Func<T, string?> getName,
+        Func<T, DateTime?> getPremiere,
+        string? name,
+        DateTime? released)
+    {
+        var candidates = episodes.ToList();
+        var wantedName = NormalizeEpisodeName(name);
+        if (wantedName.Length > 0)
+        {
+            var byName = candidates.Where(e => NormalizeEpisodeName(getName(e)) == wantedName).ToList();
+            if (byName.Count > 0)
+            {
+                return byName;
+            }
+        }
+
+        if (released.HasValue)
+        {
+            var byDate = candidates
+                .Where(e => getPremiere(e) is DateTime premiere
+                    && Math.Abs((premiere.Date - released.Value.Date).TotalDays) <= 1)
+                .ToList();
+            if (byDate.Count == 1)
+            {
+                return byDate;
+            }
+        }
+
+        return [];
+    }
+
+    internal static string NormalizeEpisodeName(string? name)
+    {
+        return string.IsNullOrEmpty(name)
+            ? string.Empty
+            : new string(name.Where(char.IsLetterOrDigit).Select(char.ToLowerInvariant).ToArray());
+    }
+
     private async Task<IActionResult> GetJellyseerrFallbackStream(
         ConfigModel config, string imdbId, string type, int? season = null, int? episode = null)
     {
@@ -147,6 +262,7 @@ public class AddonController : ControllerBase
                 var episodeQuery = new InternalItemsQuery(user)
                 {
                     IncludeItemTypes = [BaseItemKind.Episode],
+                    IsVirtualItem = false,
                     AncestorIds = seriesIds,
                     ParentIndexNumber = season.Value,
                     IndexNumber = episode.Value,
@@ -1186,12 +1302,17 @@ public class AddonController : ControllerBase
         var episodeQuery = new InternalItemsQuery(user)
         {
             IncludeItemTypes = [BaseItemKind.Episode],
+            IsVirtualItem = false,
             AncestorIds = seriesIds,
             ParentIndexNumber = seasonNum,
             IndexNumber = episodeNum,
         };
         var episodeItems = _libraryManager.GetItemList(episodeQuery);
         LogBuffer.AddLog($"[Stream] Found {episodeItems.Count} episode(s) for Season {seasonNum}, Episode {episodeNum}", LogLevel.Info);
+        if (episodeItems.Count == 0)
+        {
+            episodeItems = [.. await FindEpisodesViaCinemeta(userId, seriesIds, imdbId, seasonNum, episodeNum)];
+        }
 
         if (episodeItems.Count == 0)
         {
@@ -1242,7 +1363,7 @@ public class AddonController : ControllerBase
 
     [HttpGet("subtitles/series/tt{imdbId}:{seasonNum:int}:{episodeNum:int}/{extra}.json")]
     [HttpGet("subtitles/series/tt{imdbId}:{seasonNum:int}:{episodeNum:int}.json")]
-    public IActionResult GetSubtitlesImdbTv(
+    public async Task<IActionResult> GetSubtitlesImdbTv(
         [ConfigFromBase64Json] ConfigModel config,
         string imdbId,
         int seasonNum,
@@ -1267,13 +1388,19 @@ public class AddonController : ControllerBase
             return Ok(new { subtitles = Array.Empty<SubtitleDto>() });
         }
 
-        var episodes = _libraryManager.GetItemList(new InternalItemsQuery(user)
+        IReadOnlyList<BaseItem> episodes = _libraryManager.GetItemList(new InternalItemsQuery(user)
         {
             IncludeItemTypes = [BaseItemKind.Episode],
+            IsVirtualItem = false,
             AncestorIds = seriesIds,
             ParentIndexNumber = seasonNum,
             IndexNumber = episodeNum,
         });
+        if (episodes.Count == 0)
+        {
+            episodes = await FindEpisodesViaCinemeta(userId, seriesIds, imdbId, seasonNum, episodeNum);
+        }
+
         return GetSubtitlesResult(userId, episodes, config, extra);
     }
 
