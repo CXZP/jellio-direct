@@ -11,4 +11,4 @@ owner: "CXZP"
 artifacts:
   - "Jellyfin.Plugin.JellioDirect.dll"
 changelog: |
-  Max resolution setting for the HLS entries; bitrate ceiling down to 2 Mbps.
+  Subtitles on the HLS entries; finds episodes IMDb numbers differently; Episode list option (Cinemeta or Jellyfin); redesigned settings page.

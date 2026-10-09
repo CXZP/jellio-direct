@@ -17,6 +17,12 @@
 - Logo and background images in catalog items, and descriptions as plain text.
 - A **Max resolution** setting for the HLS entries (4K, 1440p, 1080p or 720p),
   so a slow upload can get a clean 1080p stream instead of a blocky 4K one.
+- Jellyfin's text subtitles show up in Stremio on the HLS entries too, only for
+  the file that is playing.
+- Episodes that IMDb numbers differently from Jellyfin (specials, OVAs) are still
+  found, and an **Episode list** option shows a series with Jellyfin's own seasons,
+  numbering and thumbnails.
+- A redesigned settings page.
 
 **Installing**
 
@@ -65,7 +71,7 @@ Every fork gets another `+`. This one ran out of them.
 - **Cross-Platform** - Works on all Stremio-supported devices (Windows, macOS, Linux, Android, iOS)
 - **HLS Streaming** - Adaptive bitrate streaming with proper seeking via `master.m3u8`, as a fallback below the Direct entry
 - **Transcoding Controls** - Choose adaptive, forced, or disabled transcoding separately for video and audio (HLS entries)
-- **Subtitle Support** - Text subtitles (SRT, ASS, VTT) served from Jellyfin; embedded subtitles are read by the player on the Direct entry; OpenSubtitles hash for automatic subtitle matching
+- **Subtitle Support** - Text subtitles (SRT, ASS, VTT) served from Jellyfin through Stremio's subtitles resource, matched to the playing file; embedded subtitles are read by the player on the Direct entry; OpenSubtitles hash for automatic subtitle matching
 - **Audio Track Selection** - Pick specific audio tracks (language, codec, channels) directly in Stremio
 - **AV1 Compatibility** - Adaptive video mode direct streams 1080p AV1 and transcodes 4K AV1 to H.264 for smoother Stremio playback
 - **Public Base URL** - Override the server URL for HTTPS connectivity behind reverse proxies or tunnels
@@ -122,6 +128,10 @@ These apply to the HLS entries; the Direct entry is never transcoded.
 - **Audio Transcoding Mode** (default: Adaptive) - Adaptive copies Opus/EAC3/AAC when supported and transcodes unsupported audio; Force Transcode always re-encodes to AAC; No Transcode never requests audio transcoding
 - **Max Video Bitrate** - Maximum video bitrate in Mbps (2-200, default: 120)
 - **Max Resolution** (default: 4K) - Video taller than this is scaled down (4K, 1440p, 1080p or 720p); smaller video keeps its size
+
+### Series
+
+- **Episode list** (default: Cinemeta) - Cinemeta uses IMDb's episode list, so other addons (OpenSubtitles, stream addons) work with your series too; episodes that IMDb numbers differently from Jellyfin are still found. Jellyfin shows your own seasons, numbering and episode thumbnails, but other addons don't recognize those series and Stremio tracks their watch progress separately
 
 ### Watching away from home
 
