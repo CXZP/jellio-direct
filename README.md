@@ -20,8 +20,12 @@
 
 **Installing**
 
-Download the zip from [Releases](https://github.com/CXZP/jellio-direct/releases) and follow the
-[Installation](#installation) steps below.
+Add this plugin repository in Jellyfin and install **Jellio Direct** from the catalog
+(full steps under [Installation](#installation)):
+
+```
+https://raw.githubusercontent.com/CXZP/jellio-direct/metadata/jellyfin-repo-manifest.json
+```
 
 It uses its own plugin ID, addon ID and URLs (`/jelliodirect/...`), so it can be
 installed next to the official Jellio++ without the two overwriting each other.
@@ -29,9 +33,9 @@ Requires Jellyfin 12.
 
 **Good to know**
 
-- The plugin page in Jellyfin's dashboard shows *"An error occurred while getting
-  the plugin details from the repository."* That's expected: the plugin isn't in
-  any plugin repository, so Jellyfin has nothing to look up. It works normally.
+- If you installed from the zip without adding the repository, the plugin page in
+  Jellyfin's dashboard shows *"An error occurred while getting the plugin details
+  from the repository."* That's expected and harmless.
 - If you keep both addons installed in Stremio (this one and Jellio++), every
   catalog and every stream shows up twice. Install only one of them in Stremio,
   or remove the other one there.
@@ -87,16 +91,20 @@ Enable the optional Jellyseerr functionality to be able to directly request medi
 
 NOTICE: If Stremio runs on the same computer as Jellyfin, the default `http://127.0.0.1:8096` addon link works as is. For Stremio on other devices, Jellyfin needs to be reachable over HTTPS, because Stremio requires HTTPS for remote addon URLs: use a tunnel or reverse proxy such as Tailscale Serve/Funnel, Cloudflare Tunnel, ngrok, etc., and set it as the Public URL. Behind Tailscale Serve or another HTTPS proxy, the Public URL is required: without it, poster and video links point to plain `http://` on the proxy host and don't load.
 
-Jellio Direct isn't in a plugin repository; install it from the zip:
+1. Open Jellyfin Dashboard > Plugins > Manage Repositories
+2. Click "New Repository", enter "Jellio Direct" as the name and this as the repository URL:
+   ```
+   https://raw.githubusercontent.com/CXZP/jellio-direct/metadata/jellyfin-repo-manifest.json
+   ```
+3. Go back to Plugins, find **Jellio Direct** under "All" and install it
+4. Restart Jellyfin
+5. Jellyfin Dashboard > Plugins > Installed > Jellio Direct and then click "Settings"
+6. Select which libraries you want to be included in Stremio
+7. (Optional) Input your local Jellyseerr url (e.g. http://192.168.0.105:5055) and your Jellyseerr API key. Also include your Public URL for Jellyfin (e.g. https://jellyfin.yourserver.com)
+8. Click "Save Configuration for Jellyfin"
+9. Lastly, click "Install." Copy that link and paste it in your Stremio addons. You're all done!
 
-1. Download `jellio-direct_<version>.zip` from [Releases](https://github.com/CXZP/jellio-direct/releases)
-2. Extract it into a new folder in Jellyfin's `plugins` directory (for example `C:\ProgramData\Jellyfin\Server\plugins\JellioDirect` on Windows, `/var/lib/jellyfin/plugins/JellioDirect` on Linux)
-3. Restart Jellyfin
-4. Jellyfin Dashboard > Plugins > Installed > Jellio Direct and then click "Settings"
-5. Select which libraries you want to be included in Stremio
-6. (Optional) Input your local Jellyseerr url (e.g. http://192.168.0.105:5055) and your Jellyseerr API key. Also include your Public URL for Jellyfin (e.g. https://jellyfin.yourserver.com)
-7. Click "Save Configuration for Jellyfin"
-8. Lastly, click "Install." Copy that link and paste it in your Stremio addons. You're all done!
+Without the repository: download `jellio-direct_<version>.zip` from [Releases](https://github.com/CXZP/jellio-direct/releases), extract it into a new folder in Jellyfin's `plugins` directory (for example `C:\ProgramData\Jellyfin\Server\plugins\JellioDirect` on Windows, `/var/lib/jellyfin/plugins/JellioDirect` on Linux), and continue from step 4.
 
 ## Configuration
 
