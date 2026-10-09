@@ -8,6 +8,14 @@
         "category": "General",
         "versions": [
             {
+                "version": "1.2.0.0",
+                "changelog": "Subtitles on the HLS entries; finds episodes IMDb numbers differently; Episode list option (Cinemeta or Jellyfin); redesigned settings page.\n",
+                "targetAbi": "12.0.0.0",
+                "sourceUrl": "https://github.com/CXZP/jellio-direct/releases/download/v1.2.0.0/jellio-direct_1.2.0.0.zip",
+                "checksum": "073e4116c81a48b33895eae8120f0933",
+                "timestamp": "2026-10-09T20:43:20Z"
+            },
+            {
                 "version": "1.1.0.0",
                 "changelog": "Max resolution setting for the HLS entries; bitrate ceiling down to 2 Mbps.",
                 "targetAbi": "12.0.0.0",
