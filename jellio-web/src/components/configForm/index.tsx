@@ -102,16 +102,21 @@ const ConfigForm: FC<Props> = ({ serverInfo }) => {
   return (
     <Form {...form}>
       <form className="space-y-2 p-2 rounded-lg border">
-        <ServerNameField form={form} />
-        <LibrariesField
-          form={form}
-          serverName={serverName}
-          libraries={serverInfo.libraries}
-        />
-        <PublicBaseUrlField form={form} />
-        <EpisodeListField form={form} />
-        <TranscodingFieldset form={form} />
-        <JellyseerrFieldset form={form} />
+        {/* One column on narrow screens; on wide ones the playback settings sit beside the rest. */}
+        <div className="space-y-2 xl:grid xl:grid-cols-2 xl:items-start xl:gap-2 xl:space-y-0">
+          <div className="space-y-2">
+            <ServerNameField form={form} />
+            <LibrariesField
+              form={form}
+              serverName={serverName}
+              libraries={serverInfo.libraries}
+            />
+            <PublicBaseUrlField form={form} />
+            <EpisodeListField form={form} />
+            <JellyseerrFieldset form={form} />
+          </div>
+          <TranscodingFieldset form={form} />
+        </div>
         <InstallUrlsContainer form={form} serverInfo={serverInfo} />
         <div className="p-3">
           <LogsViewer accessToken={serverInfo.accessToken} />

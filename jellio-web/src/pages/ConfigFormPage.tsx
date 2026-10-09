@@ -15,7 +15,7 @@ const ConfigFormPage: FC<Props> = ({ serverInfo }) => {
     hostname === '127.0.0.1';
 
   return (
-    <div className="mx-auto max-w-2xl">
+    <div className="mx-auto max-w-2xl xl:max-w-6xl">
       <Header />
       {!isSecure && (
         <div className="p-4 mb-4 bg-yellow-100 text-yellow-800 rounded">
